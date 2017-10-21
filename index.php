@@ -1,17 +1,17 @@
 <?php
-
+//turn on debugging messages
 ini_set('display_errors', 'On');
 error_reporting(E_ALL);
 
-class autoloadModel 
+class Manage 
 {
-  public static function autoload($class)
+  public static function autoloadModel($class)
   {
     include $class . '.php';
   }
 }
 
-spl_autoload_register(array('autoloadModel', 'autoload'));
+spl_autoload_register(array('Manage', 'autoloadModel'));
 $obj = new main();
 
 class main 
@@ -20,25 +20,25 @@ class main
   {
     $pageRequest = 'mainPage';
     $table = 'table';
-       
-    if(isset($_REQUEST['newPage'])) 
-    {         
-      $pageRequest = $_REQUEST['newPage'];
-    }
-      $newPage = new $pageRequest;
 
-    if($_SERVER['REQUEST_METHOD'] == 'GET')
+    if(isset($_REQUEST['page'])) 
     {
-      $newPage->get();
-    } 
-    else 
-    {
-      $newPage->post();
+      $pageRequest = $_REQUEST['page'];
     }
+    $page = new $pageRequest;
+
+  if($_SERVER['REQUEST_METHOD'] == 'GET') 
+  {
+    $page->get();
+  } 
+  else 
+  {
+    $page->post();
+  }
   }
 }
 
-abstract class newPage
+abstract class page
 {
   protected $html;
 
@@ -51,10 +51,10 @@ abstract class newPage
   {
     $this->html .= '</body></html>';
     stringFunctions::printThis($this->html);
-  }  
+  } 
 }
 
-class mainPage extends newPage
+class mainPage extends page
 {
   public function get()
   {
@@ -62,7 +62,7 @@ class mainPage extends newPage
     $form .= '<input type="file" name="fileToUpload" id="fileToUpload">';
     $form .= '<input type="submit" value="Upload file" name="submit">';
     $form .= '</form> ';
-    $this->html .= '<h1>Upload Form</h1>';
+    $this->html .= '<h1>UPLOAD FORM</h1>';
     $this->html .= $form;
   }
 
@@ -75,33 +75,31 @@ class mainPage extends newPage
     $imageFileName = pathinfo($target_file,PATHINFO_BASENAME);
     move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file);
 
-    header("Location: https://web.njit.edu/~srk77/project/untitled.php?page=table&filename=".$_FILES["fileToUpload"]["name"]);
+    header("Location: https://web.njit.edu/~srk77/project/index.php?page=table&filename=".$_FILES["fileToUpload"]["name"]);
   }
 }
 
-class stringFunctions
+class stringFunctions 
 {
   static public function printThis($inputText) 
   {
     return print($inputText);
   }
-
   static public function stringLength($text) 
   {
     return strLen($text);
   }
 }
 
-class table extends newPage
+class table extends page
 {
   public function get()
   {
     $firstRow = true;
-    $this->html .= '<table border=1>';
-
-    $name= "UPLOADS/".$_REQUEST['filename'];  
-    $file = fopen($name,"r");
-    while (($line = fgetcsv($file)) !== false)
+    $this->html .= '<table border=2>';
+    $name= "UPLOADS/".$_REQUEST['filename'];
+    $f = fopen($name,"r");
+    while (($line = fgetcsv($f)) !== false)
     {
       $this->html .= '<tr>';
       if($firstRow)
@@ -110,7 +108,7 @@ class table extends newPage
         {
           $this->html .= '<th>' . htmlspecialchars($cell) . '</th>';
         }
-          $firstRow = false;
+        $firstRow = false;
       }
       else
       {
@@ -118,10 +116,10 @@ class table extends newPage
         {
           $this->html .= '<td>' . htmlspecialchars($cell) . '</td>';
         }
-      }        
+      }
           $this->html .= '</tr>';
     }
-      fclose($file);
+      fclose($f);
       $this->html .= '</table';
   }
 }
